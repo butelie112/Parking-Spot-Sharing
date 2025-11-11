@@ -2163,13 +2163,21 @@ export function LeafletMapView({
                     {t.parking.availability.availableHours}
                   </p>
                   <div className="space-y-1">
-                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((dayName, dayIndex) => {
+                    {[
+                      t.modals.booking.sun,
+                      t.modals.booking.mon,
+                      t.modals.booking.tue,
+                      t.modals.booking.wed,
+                      t.modals.booking.thu,
+                      t.modals.booking.fri,
+                      t.modals.booking.sat
+                    ].map((dayName, dayIndex) => {
                       const daySchedules = spotAvailability.schedules?.filter((s: any) => s.day_of_week === dayIndex);
                       if (!daySchedules || daySchedules.length === 0) return null;
                       
                       return (
                         <div key={dayIndex} className="flex items-center gap-2 text-xs">
-                          <span className="font-semibold text-green-800 w-16">{dayName.slice(0, 3)}:</span>
+                          <span className="font-semibold text-green-800 w-16">{dayName}:</span>
                           <span className="text-green-700">
                             {daySchedules.map((s: any, i: number) => (
                               <span key={i}>
