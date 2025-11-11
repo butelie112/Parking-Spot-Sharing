@@ -599,7 +599,7 @@ export function ParkingGrid() {
               </div>
             )}
 
-          {selectingLocation && (
+            {selectingLocation && (
             <div className="mb-4 p-4 bg-[#007BFF] bg-opacity-10 rounded-xl border-2 border-[#007BFF] animate-pulse">
               <p className="text-[#007BFF] font-bold text-center text-lg">
                 👆 Click anywhere on the map below to place your parking spot
@@ -612,9 +612,9 @@ export function ParkingGrid() {
                 Cancel Selection
               </button>
             </div>
-          )}
+            )}
 
-          {(pendingMapLocation || selectedLocationForPin) && (
+            {(pendingMapLocation || selectedLocationForPin) && (
             <div className="mb-4 p-4 bg-white rounded-xl border-2 border-[#00C48C] flex items-center justify-between shadow-md">
               <div className="flex items-center gap-2">
                 <div className="bg-[#00C48C] rounded-full p-1.5">
@@ -636,7 +636,7 @@ export function ParkingGrid() {
                 Change
               </button>
             </div>
-          )}
+            )}
 
             <form onSubmit={addSpot} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
