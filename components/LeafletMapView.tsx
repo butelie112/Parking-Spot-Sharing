@@ -2140,7 +2140,7 @@ export function LeafletMapView({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-blue-800">
                         <Clock className="w-4 h-4" />
-                        <span className="text-sm font-semibold">{t.parking.booking.currentlyReserved}</span>
+                        <span className="text-sm font-semibold">{t.modals.booking.currentlyReserved}</span>
                       </div>
                       {bookingDetails.startTime && bookingDetails.endTime && (
                         <div className="text-xs text-blue-600">
@@ -2330,11 +2330,11 @@ export function LeafletMapView({
                             ? 'text-green-700'
                             : 'text-red-700'
                         }`}>
-                          {t.parking.booking.latestRequest} {existingBooking.status === 'pending'
-                            ? t.parking.booking.pendingApproval
+                          {t.modals.booking.latestRequest} {existingBooking.status === 'pending'
+                            ? t.modals.booking.pendingApproval
                             : existingBooking.status === 'accepted'
-                            ? t.parking.booking.accepted
-                            : t.parking.booking.rejected}
+                            ? t.modals.booking.accepted
+                            : t.modals.booking.rejected}
                         </p>
                         <p className="text-xs text-gray-600">
                           {existingBooking.start_date && existingBooking.end_date && existingBooking.start_time && existingBooking.end_time && (

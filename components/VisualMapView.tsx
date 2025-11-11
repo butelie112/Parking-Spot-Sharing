@@ -527,7 +527,7 @@ export function VisualMapView({
               {/* Booking Status Information */}
               {bookingDetails && selectedSpot.status === 'reserved' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-blue-800 uppercase mb-2">{t.parking.booking.bookingStatus}</p>
+                  <p className="text-xs font-semibold text-blue-800 uppercase mb-2">{t.modals.booking.bookingStatus}</p>
                   {bookingDetails.isMyBooking ? (
                     <div className="flex items-center gap-2 text-blue-800">
                       <CheckCircle className="w-4 h-4" />
@@ -694,7 +694,7 @@ export function VisualMapView({
                     {bookingLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        {t.parking.booking.sendingRequest}
+                        {t.modals.booking.sendingRequest}
                       </>
                     ) : (
                       <>
