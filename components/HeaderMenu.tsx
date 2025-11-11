@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Menu, ChevronDown, Settings, LogOut, User, Bell, Map, Grid3x3, Plus, X, MapPin, CheckCircle, Wallet, CreditCard, Calendar, Globe } from 'lucide-react';
+import { Menu, ChevronDown, Settings, LogOut, User, Bell, Map, Grid3x3, Plus, X, MapPin, CheckCircle, Wallet, CreditCard, Calendar } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { SpotAvailabilitySchedule } from './SpotAvailabilitySchedule';
 import { createCheckoutSession, verifyPayment } from '@/lib/stripe';
-import { SimpleLanguageSelector } from './SimpleLanguageSelector';
 
 interface HeaderMenuProps {
   userName: string;
@@ -37,7 +36,6 @@ export function HeaderMenu({
   const [showSettings, setShowSettings] = useState(false);
   
   const [settingsName, setSettingsName] = useState(userName || user?.email?.split('@')[0] || '');
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [saving, setSaving] = useState(false);
 
   // Add spot modal states
@@ -809,20 +807,6 @@ export function HeaderMenu({
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Email cannot be changed
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    {t.modals.settings.language}
-                  </label>
-                  <SimpleLanguageSelector
-                    value={selectedLanguage}
-                    onChange={setSelectedLanguage}
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    English only (other languages disabled)
                   </p>
                 </div>
 
