@@ -694,7 +694,6 @@ export function ParkingGrid() {
           </div>
         )}
 
-        {/* Stats - Compact on mobile, full on desktop */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
           {/* Available */}
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-2xl shadow-md sm:shadow-lg p-2 sm:p-5 border border-green-100 hover:shadow-xl transition-shadow">
@@ -743,7 +742,6 @@ export function ParkingGrid() {
         </div>
 
         {/* View Selector: Map or Grid */}
-        {console.log('Current viewMode:', viewMode)}
         {viewMode === 'map' ? (
         <div className="relative">
           <LeafletMapView
