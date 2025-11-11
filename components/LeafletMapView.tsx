@@ -2102,7 +2102,7 @@ export function LeafletMapView({
               {/* Booking Status Information */}
               {bookingDetails && selectedSpot.status === 'reserved' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-blue-800 uppercase mb-2">{t.parking.booking.currentBooking}</p>
+                  <p className="text-xs font-semibold text-blue-800 uppercase mb-2">{t.modals.booking.currentBooking}</p>
                   {bookingDetails.isMyBooking ? (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-blue-800">
