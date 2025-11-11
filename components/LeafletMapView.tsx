@@ -1403,8 +1403,8 @@ export function LeafletMapView({
                   <div className="text-center">
                     <h3 className="font-bold text-lg">{spot.name}</h3>
                     <p className="text-sm text-gray-600">
-                      {spot.status === 'available' ? t.parking.spot.available : 
-                       spot.status === 'reserved' ? t.parking.spot.reserved : 
+                      {spot.status === 'available' ? t.parking.spot.availableNow :
+                       spot.status === 'reserved' ? t.parking.spot.booked :
                        t.parking.spot.occupied}
                     </p>
                     {isOwner(spot) && (
