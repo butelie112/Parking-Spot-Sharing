@@ -1,4 +1,4 @@
-# 🅿️ ParkEZ - Parking Spot Sharing PWA
+# 🅿️ Parkeez - Parking Spot Sharing PWA
 
 **Milestone 1 Demo** - Login & Visual Grid Complete! ✅
 
