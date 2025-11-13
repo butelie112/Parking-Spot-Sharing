@@ -149,6 +149,7 @@ export function LeafletMapView({
     hasSchedule: boolean;
     defaultAvailable: boolean;
     schedules?: any[];
+    blockedDates?: any[];
   } | null>(null);
   const [allSpotsSchedules, setAllSpotsSchedules] = useState<Map<string, any[]>>(new Map());
 
@@ -380,16 +381,27 @@ export function LeafletMapView({
 
         if (schedError) throw schedError;
 
+        // Fetch blocked dates
+        const { data: blocked, error: blockedError } = await supabase
+          .from('blocked_dates')
+          .select('*')
+          .eq('spot_id', spotId)
+          .order('blocked_date', { ascending: true });
+
+        if (blockedError) throw blockedError;
+
         setSpotAvailability({
           hasSchedule: true,
           defaultAvailable: spot.default_available,
-          schedules: schedules || []
+          schedules: schedules || [],
+          blockedDates: blocked || []
         });
       } else {
         setSpotAvailability({
           hasSchedule: false,
           defaultAvailable: spot.default_available,
-          schedules: []
+          schedules: [],
+          blockedDates: []
         });
       }
     } catch (error) {
@@ -415,8 +427,8 @@ export function LeafletMapView({
         const { data: isAvailable, error: availError } = await supabase
           .rpc('check_spot_availability', {
             p_spot_id: spotId,
-            p_start_date: startDate.toISOString().split('T')[0],
-            p_end_date: endDate.toISOString().split('T')[0],
+            p_start_date: startDate.toLocaleDateString('en-CA'), // YYYY-MM-DD format in local timezone
+            p_end_date: endDate.toLocaleDateString('en-CA'), // YYYY-MM-DD format in local timezone
             p_start_time: startTime,
             p_end_time: endTime
           });
@@ -443,8 +455,8 @@ export function LeafletMapView({
       if (!bookings || bookings.length === 0) return { available: true }; // No bookings, slot is available
 
       // Check for conflicts
-      const requestedStart = new Date(`${startDate.toISOString().split('T')[0]}T${startTime}`);
-      const requestedEnd = new Date(`${endDate.toISOString().split('T')[0]}T${endTime}`);
+      const requestedStart = new Date(`${startDate.toLocaleDateString('en-CA')}T${startTime}`);
+      const requestedEnd = new Date(`${endDate.toLocaleDateString('en-CA')}T${endTime}`);
 
       for (const booking of bookings) {
         const bookingStart = new Date(`${booking.start_date}T${booking.start_time}`);
@@ -2162,33 +2174,76 @@ export function LeafletMapView({
                     <Clock className="w-4 h-4" />
                     {t.parking.availability.availableHours}
                   </p>
-                  <div className="space-y-1">
-                    {[
-                      t.modals.booking.sun,
-                      t.modals.booking.mon,
-                      t.modals.booking.tue,
-                      t.modals.booking.wed,
-                      t.modals.booking.thu,
-                      t.modals.booking.fri,
-                      t.modals.booking.sat
-                    ].map((dayName, dayIndex) => {
-                      const daySchedules = spotAvailability.schedules?.filter((s: any) => s.day_of_week === dayIndex);
-                      if (!daySchedules || daySchedules.length === 0) return null;
-                      
-                      return (
-                        <div key={dayIndex} className="flex items-center gap-2 text-xs">
-                          <span className="font-semibold text-green-800 w-16">{dayName}:</span>
-                          <span className="text-green-700">
-                            {daySchedules.map((s: any, i: number) => (
-                              <span key={i}>
-                                {s.start_time.slice(0, 5)} - {s.end_time.slice(0, 5)}
-                                {i < daySchedules.length - 1 && ', '}
-                              </span>
-                            ))}
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div className="space-y-3">
+                    {/* Upcoming Available Dates */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Următoarele date disponibile</p>
+                      {(() => {
+                        const upcomingDates: Array<{date: string; timeRange: string; fullDate: Date}> = [];
+                        const today = new Date();
+                        const blockedDatesSet = new Set(spotAvailability.blockedDates?.map((b: any) => b.blocked_date) || []);
+
+                        // Get upcoming week availability (current week onwards)
+                        for (let weekOffset = 0; weekOffset < 1; weekOffset++) {
+                          [
+                            t.modals.booking.sun,
+                            t.modals.booking.mon,
+                            t.modals.booking.tue,
+                            t.modals.booking.wed,
+                            t.modals.booking.thu,
+                            t.modals.booking.fri,
+                            t.modals.booking.sat
+                          ].forEach((dayName, dayIndex) => {
+                            const daySchedules = spotAvailability.schedules?.filter((s: any) => s.day_of_week === dayIndex);
+                            if (!daySchedules || daySchedules.length === 0) return;
+
+                            // Calculate the date for this day in the current week offset
+                            const targetDate = new Date(today);
+                            const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                            const daysToAdd = (dayIndex - currentDayOfWeek + 7) % 7 + (weekOffset * 7);
+
+                            targetDate.setDate(today.getDate() + daysToAdd);
+
+                            // Skip dates in the past (but allow today)
+                            if (targetDate < today && targetDate.toDateString() !== today.toDateString()) {
+                              return;
+                            }
+
+                            // Skip if this date is blocked
+                            const dateString = targetDate.toLocaleDateString('en-CA');
+                            if (blockedDatesSet.has(dateString)) return;
+
+                            // Format the date
+                            const formattedDate = targetDate.toLocaleDateString('ro-RO', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            });
+
+                            daySchedules.forEach((schedule: any) => {
+                              upcomingDates.push({
+                                date: formattedDate,
+                                timeRange: `${schedule.start_time.slice(0, 5)} - ${schedule.end_time.slice(0, 5)}`,
+                                fullDate: new Date(targetDate) // Clone the date
+                              });
+                            });
+                          });
+                        }
+
+                        // Sort by date and show next week's available slots
+                        return upcomingDates
+                          .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
+                          .slice(0, 6)
+                          .map((dateInfo, index) => (
+                            <div key={index} className="text-xs text-green-700 bg-green-100 bg-opacity-50 rounded px-2 py-1">
+                              <span className="font-medium capitalize">{dateInfo.date}</span>
+                              <span className="mx-1">•</span>
+                              <span>{dateInfo.timeRange}</span>
+                            </div>
+                          ));
+                      })()}
+                    </div>
                   </div>
                 </div>
               )}

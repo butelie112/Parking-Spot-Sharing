@@ -101,6 +101,19 @@ export function HeaderMenu({
     };
   }, [user]);
 
+  // Listen for open wallet modal events
+  useEffect(() => {
+    const handleOpenWalletModal = () => {
+      setShowWalletModal(true);
+    };
+
+    window.addEventListener('openWalletModal', handleOpenWalletModal);
+
+    return () => {
+      window.removeEventListener('openWalletModal', handleOpenWalletModal);
+    };
+  }, []);
+
   // Handle adding balance via Stripe
   const handleAddBalance = async (amount: number) => {
     if (!user) {

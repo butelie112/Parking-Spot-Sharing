@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Car, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Calendar, Clock, Car, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
 import { ParkingSpot, supabase } from '@/lib/supabase';
 import { useTimezone } from './TimezoneHandler';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -42,6 +42,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [spotSchedule, setSpotSchedule] = useState<any[]>([]);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [blockedDates, setBlockedDates] = useState<any[]>([]);
 
   // Generate calendar days
   const getDaysInMonth = (date: Date) => {
@@ -221,8 +222,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
     setAvailabilityDetails(null);
 
     try {
-      const startDateStr = checkInDate.toISOString().split('T')[0];
-      const endDateStr = checkOutDate.toISOString().split('T')[0];
+      const startDateStr = checkInDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
+      const endDateStr = checkOutDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
 
       // First check if spot has a schedule set
       const { data: spotInfo, error: spotInfoError } = await supabase
@@ -430,6 +431,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
 
           if (scheduleError) throw scheduleError;
           setSpotSchedule(scheduleData || []);
+
+          // Fetch blocked dates
+          const { data: blockedData, error: blockedError } = await supabase
+            .from('blocked_dates')
+            .select('*')
+            .eq('spot_id', spot.id)
+            .order('blocked_date', { ascending: true });
+
+          if (blockedError) throw blockedError;
+          setBlockedDates(blockedData || []);
         } else {
           // No schedule set, use default availability
           if (spotData?.default_available) {
@@ -438,6 +449,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
           } else {
             setSpotSchedule([{ message: 'Indisponibil (contactați proprietarul)' }]);
           }
+          setBlockedDates([]);
         }
       } catch (error) {
         console.error('Error fetching spot schedule:', error);
@@ -485,14 +497,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
                 <h3 className="text-lg font-bold text-red-800 mb-2">{t.modals.booking.lowWalletBalance}</h3>
                 <p className="text-red-700 font-medium mb-3">{balanceError}</p>
                 <div className="bg-white rounded-xl p-3 border border-red-200">
-                  <p className="text-sm text-red-700 mb-2">
+                  <p className="text-sm text-red-700 mb-3">
                     <strong>{t.modals.booking.whatYouCanDo}</strong>
                   </p>
-                  <ul className="text-sm text-red-700 space-y-1 font-medium">
-                    <li>• {t.modals.booking.addFundsToWallet}</li>
-                    <li>• {t.modals.booking.chooseDifferentTimeSlot}</li>
-                    <li>• {t.modals.booking.contactSupport}</li>
-                  </ul>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => {
+                        // Dispatch custom event to open wallet modal
+                        window.dispatchEvent(new CustomEvent('openWalletModal'));
+                        onClose(); // Close the booking modal
+                      }}
+                      className="w-full bg-[#00C48C] hover:bg-[#00b37d] text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                    >
+                      <Wallet className="w-5 h-5" />
+                      {t.modals.booking.addFundsToWallet}
+                    </button>
+                    <ul className="text-sm text-red-700 space-y-1 font-medium">
+                      <li>• {t.modals.booking.chooseDifferentTimeSlot}</li>
+                      <li>• {t.modals.booking.contactSupport}</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -573,19 +597,68 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
                 {spotSchedule[0].message ? (
                   <p className="text-sm text-blue-800">{spotSchedule[0].message}</p>
                 ) : (
-                  <div className="space-y-1">
-                    {['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'].map((dayName, dayIndex) => {
-                      const daySchedules = spotSchedule.filter(s => s.day_of_week === dayIndex);
-                      if (daySchedules.length === 0) return null;
-                      return (
-                        <div key={dayIndex} className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-blue-900 w-20">{dayName}:</span>
-                          <span className="text-blue-700">
-                            {daySchedules.map(s => `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`).join(', ')}
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div className="space-y-3">
+                    {/* Upcoming Available Dates */}
+                    <div className="space-y-1">
+                      <h6 className="text-xs font-semibold text-blue-800 uppercase tracking-wider">Următoarele date disponibile</h6>
+                      {(() => {
+                        const upcomingDates: Array<{date: string; timeRange: string; fullDate: Date}> = [];
+                        const today = new Date();
+                        const blockedDatesSet = new Set(blockedDates?.map(b => b.blocked_date) || []);
+
+                        // Get upcoming week availability (current week onwards)
+                        for (let weekOffset = 0; weekOffset < 1; weekOffset++) {
+                          ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'].forEach((dayName, dayIndex) => {
+                            const daySchedules = spotSchedule.filter(s => s.day_of_week === dayIndex);
+                            if (daySchedules.length === 0) return;
+
+                            // Calculate the date for this day in the current week offset
+                            const targetDate = new Date(today);
+                            const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                            const daysToAdd = (dayIndex - currentDayOfWeek + 7) % 7 + (weekOffset * 7);
+
+                            targetDate.setDate(today.getDate() + daysToAdd);
+
+                            // Skip dates in the past (but allow today)
+                            if (targetDate < today && targetDate.toDateString() !== today.toDateString()) {
+                              return;
+                            }
+
+                            // Skip if this date is blocked
+                            const dateString = targetDate.toLocaleDateString('en-CA');
+                            if (blockedDatesSet.has(dateString)) return;
+
+                            // Format the date
+                            const formattedDate = targetDate.toLocaleDateString('ro-RO', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            });
+
+                            daySchedules.forEach(schedule => {
+                              upcomingDates.push({
+                                date: formattedDate,
+                                timeRange: `${schedule.start_time.slice(0, 5)} - ${schedule.end_time.slice(0, 5)}`,
+                                fullDate: new Date(targetDate) // Clone the date
+                              });
+                            });
+                          });
+                        }
+
+                        // Sort by date and show next week's available slots
+                        return upcomingDates
+                          .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
+                          .slice(0, 6)
+                          .map((dateInfo, index) => (
+                            <div key={index} className="text-xs text-blue-700 bg-blue-100 bg-opacity-50 rounded px-2 py-1">
+                              <span className="font-medium capitalize">{dateInfo.date}</span>
+                              <span className="mx-1">•</span>
+                              <span>{dateInfo.timeRange}</span>
+                            </div>
+                          ));
+                      })()}
+                    </div>
                   </div>
                 )}
               </div>
