@@ -6,9 +6,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-10-29.clover',
 });
 
+// IMPORTANT: We MUST use service role key for server-side operations
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('⚠️ WARNING: SUPABASE_SERVICE_ROLE_KEY is not set! Payments will NOT be recorded!');
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(request: NextRequest) {
@@ -47,10 +52,12 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
-    const amount = parseFloat(session.metadata?.amount || '0');
+    const totalAmount = parseFloat(session.metadata?.totalAmount || '0');
+    const walletAmount = parseFloat(session.metadata?.walletAmount || '0');
+    const platformFee = parseFloat(session.metadata?.platformFee || '0');
     const sessionId = session.id;
 
-    if (userId && amount > 0) {
+    if (userId && totalAmount > 0 && walletAmount > 0) {
       try {
         // Check if this payment was already processed
         const { data: existingPayment } = await supabase
@@ -64,10 +71,10 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ received: true, alreadyProcessed: true });
         }
 
-        // Add balance to user's wallet using the database function
+        // Add balance to user's wallet using the database function (only wallet amount, not total)
         const { data, error } = await supabase.rpc('add_to_wallet', {
           p_user_id: userId,
-          p_amount: amount,
+          p_amount: walletAmount,
         });
 
         if (error) {
@@ -78,17 +85,42 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Mark this payment as processed
-        await supabase
-          .from('processed_payments')
-          .insert({
-            session_id: sessionId,
-            user_id: userId,
-            amount: amount,
-            processed_at: new Date().toISOString(),
-          });
+        // Get user profile information
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single();
 
-        console.log(`Webhook: Successfully added ${amount} RON to user ${userId}'s wallet`);
+        console.log('User profile fetched:', profile);
+
+        // Record the complete transaction with all details
+        const paymentData = {
+          session_id: sessionId,
+          user_id: userId,
+          amount: walletAmount, // Net amount added to wallet (90%)
+          total_amount: totalAmount, // Total amount paid by user (100%)
+          platform_fee: platformFee, // Platform fee (10%)
+          transaction_type: 'stripe_deposit',
+          email: profile?.email || null,
+          full_name: profile?.full_name || null,
+        };
+
+        console.log('Attempting to insert payment record:', paymentData);
+
+        const { data: paymentRecord, error: insertError } = await supabase
+          .from('processed_payments')
+          .insert(paymentData)
+          .select();
+
+        if (insertError) {
+          console.error('❌ ERROR inserting payment record:', insertError);
+          console.error('Full error details:', JSON.stringify(insertError, null, 2));
+        } else {
+          console.log('✅ Payment record inserted successfully:', paymentRecord);
+        }
+
+        console.log(`Webhook: Successfully processed payment - Added ${walletAmount} RON to wallet, ${platformFee} RON platform fee (Total: ${totalAmount} RON) for user ${userId}`);
       } catch (error) {
         console.error('Error processing payment:', error);
         return NextResponse.json(

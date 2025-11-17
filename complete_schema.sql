@@ -338,6 +338,18 @@ BEGIN
         updated_at = NOW()
     WHERE id = p_to_user_id;
 
+    -- Record the outgoing transaction for sender
+    INSERT INTO processed_payments (user_id, amount, transaction_type, email, full_name, processed_at)
+    SELECT p_from_user_id, -p_amount, 'booking_payment',
+           p.email, p.full_name, NOW()
+    FROM profiles p WHERE p.id = p_from_user_id;
+
+    -- Record the incoming transaction for receiver
+    INSERT INTO processed_payments (user_id, amount, transaction_type, email, full_name, processed_at)
+    SELECT p_to_user_id, p_amount, 'booking_payment',
+           p.email, p.full_name, NOW()
+    FROM profiles p WHERE p.id = p_to_user_id;
+
     -- Return success with balance details
     RETURN json_build_object(
       'success', true,
@@ -674,9 +686,14 @@ ALTER TABLE "public"."booking_requests" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."processed_payments" (
     "id" bigint NOT NULL,
-    "session_id" "text" NOT NULL,
+    "session_id" "text",
     "user_id" "uuid" NOT NULL,
     "amount" numeric(10,2) NOT NULL,
+    "total_amount" numeric(10,2),
+    "platform_fee" numeric(10,2),
+    "transaction_type" "text" DEFAULT 'stripe_deposit' NOT NULL,
+    "email" "text",
+    "full_name" "text",
     "processed_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"()
 );
@@ -685,16 +702,30 @@ CREATE TABLE IF NOT EXISTS "public"."processed_payments" (
 ALTER TABLE "public"."processed_payments" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."processed_payments" IS 'Tracks processed Stripe payments to prevent double-processing';
+COMMENT ON TABLE "public"."processed_payments" IS 'Tracks all processed payments including Stripe deposits and inter-user transactions';
 
 
 
-COMMENT ON COLUMN "public"."processed_payments"."session_id" IS 'Stripe checkout session ID (unique)';
+COMMENT ON COLUMN "public"."processed_payments"."session_id" IS 'Stripe checkout session ID (unique) - null for inter-user transactions';
 
 
 
-COMMENT ON COLUMN "public"."processed_payments"."amount" IS 'Amount added to wallet in RON';
+COMMENT ON COLUMN "public"."processed_payments"."amount" IS 'Net amount added to wallet (after fees) or transferred between users';
 
+
+COMMENT ON COLUMN "public"."processed_payments"."total_amount" IS 'Total amount paid by user via Stripe (before fees) - null for inter-user transactions';
+
+
+COMMENT ON COLUMN "public"."processed_payments"."platform_fee" IS 'Platform fee amount (10% of total) - null for inter-user transactions';
+
+
+COMMENT ON COLUMN "public"."processed_payments"."transaction_type" IS 'Type of transaction: stripe_deposit, booking_payment, etc.';
+
+
+COMMENT ON COLUMN "public"."processed_payments"."email" IS 'User email at the time of transaction';
+
+
+COMMENT ON COLUMN "public"."processed_payments"."full_name" IS 'User full name at the time of transaction';
 
 
 CREATE SEQUENCE IF NOT EXISTS "public"."processed_payments_id_seq"
@@ -1233,6 +1264,37 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
 
 
+-- Migration: Extend processed_payments table to record transaction details
+-- This migration adds support for recording profile information and transaction types
+
+-- Step 1: Make session_id nullable for inter-user transactions
+ALTER TABLE "public"."processed_payments" ALTER COLUMN "session_id" DROP NOT NULL;
+
+-- Step 2: Add new columns for transaction details
+ALTER TABLE "public"."processed_payments" ADD COLUMN IF NOT EXISTS "transaction_type" text DEFAULT 'stripe_deposit' NOT NULL;
+ALTER TABLE "public"."processed_payments" ADD COLUMN IF NOT EXISTS "email" text;
+ALTER TABLE "public"."processed_payments" ADD COLUMN IF NOT EXISTS "full_name" text;
+ALTER TABLE "public"."processed_payments" ADD COLUMN IF NOT EXISTS "total_amount" numeric(10,2);
+ALTER TABLE "public"."processed_payments" ADD COLUMN IF NOT EXISTS "platform_fee" numeric(10,2);
+
+-- Step 3: Update existing records with profile information
+UPDATE "public"."processed_payments"
+SET
+  "transaction_type" = 'stripe_deposit',
+  "email" = p.email,
+  "full_name" = p.full_name
+FROM "public"."profiles" p
+WHERE "processed_payments"."user_id" = p."id"
+  AND ("processed_payments"."email" IS NULL OR "processed_payments"."full_name" IS NULL);
+
+-- Step 4: Add comments for the new columns
+COMMENT ON COLUMN "public"."processed_payments"."transaction_type" IS 'Type of transaction: stripe_deposit, booking_payment, etc.';
+COMMENT ON COLUMN "public"."processed_payments"."email" IS 'User email at the time of transaction';
+COMMENT ON COLUMN "public"."processed_payments"."full_name" IS 'User full name at the time of transaction';
+COMMENT ON COLUMN "public"."processed_payments"."total_amount" IS 'Total amount paid by user via Stripe (before fees) - null for inter-user transactions';
+COMMENT ON COLUMN "public"."processed_payments"."platform_fee" IS 'Platform fee amount (10% of total) - null for inter-user transactions';
+
+-- Migration completed: processed_payments table now supports comprehensive transaction recording with fee tracking
 
 
 
