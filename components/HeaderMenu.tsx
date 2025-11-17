@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Menu, ChevronDown, Settings, LogOut, User, Bell, Map, Grid3x3, Plus, X, MapPin, CheckCircle, Wallet, CreditCard, Calendar, Info, Mail } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,6 +33,7 @@ export function HeaderMenu({
 }: HeaderMenuProps) {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -517,30 +519,44 @@ export function HeaderMenu({
 
                   {/* Menu Items */}
                   <div className="py-2">
-                    <Link
-                      href="/how-it-works"
+                    <button
+                      type="button"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        setTimeout(() => router.push('/how-it-works'), 100);
+                      }}
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         setShowMenu(false);
-                        window.location.href = '/how-it-works';
+                        setTimeout(() => router.push('/how-it-works'), 100);
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                     >
                       <Info className="w-4 h-4" />
                       {t.footer.howItWorks}
-                    </Link>
-                    <Link
-                      href="/contact"
+                    </button>
+                    <button
+                      type="button"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        setTimeout(() => router.push('/contact'), 100);
+                      }}
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         setShowMenu(false);
-                        window.location.href = '/contact';
+                        setTimeout(() => router.push('/contact'), 100);
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                     >
                       <Mail className="w-4 h-4" />
                       {t.footer.contact}
-                    </Link>
+                    </button>
                     <button
                       type="button"
                       onTouchEnd={(e) => {
@@ -724,30 +740,44 @@ export function HeaderMenu({
 
                 {/* Menu Items */}
                 <div className="py-2">
-                  <Link
-                    href="/how-it-works"
+                  <button
+                    type="button"
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      setTimeout(() => router.push('/how-it-works'), 100);
+                    }}
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       setShowMenu(false);
-                      window.location.href = '/how-it-works';
+                      setTimeout(() => router.push('/how-it-works'), 100);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                   >
                     <Info className="w-4 h-4" />
                     {t.footer.howItWorks}
-                  </Link>
-                  <Link
-                    href="/contact"
+                  </button>
+                  <button
+                    type="button"
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      setTimeout(() => router.push('/contact'), 100);
+                    }}
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       setShowMenu(false);
-                      window.location.href = '/contact';
+                      setTimeout(() => router.push('/contact'), 100);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                   >
                     <Mail className="w-4 h-4" />
                     {t.footer.contact}
-                  </Link>
+                  </button>
                   <button
                     onClick={(e) => {
                       e.preventDefault();
