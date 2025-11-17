@@ -48,7 +48,7 @@ export default function RootLayout({
         <LanguageProvider>
           <TimezoneProvider>
             <AuthProvider>
-              <div className="min-h-screen pb-16">
+              <div className="min-h-screen sm:pb-16">
                 {children}
               </div>
               <Footer />

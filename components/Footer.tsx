@@ -13,7 +13,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+    <footer className="bg-white border-t border-gray-200 shadow-lg sm:fixed sm:bottom-0 sm:left-0 sm:right-0 sm:z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
         <div className="hidden sm:flex items-center justify-between py-4">

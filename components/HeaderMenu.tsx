@@ -519,7 +519,11 @@ export function HeaderMenu({
                   <div className="py-2">
                     <Link
                       href="/how-it-works"
-                      onClick={() => setShowMenu(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMenu(false);
+                        window.location.href = '/how-it-works';
+                      }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                     >
                       <Info className="w-4 h-4" />
@@ -527,7 +531,11 @@ export function HeaderMenu({
                     </Link>
                     <Link
                       href="/contact"
-                      onClick={() => setShowMenu(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowMenu(false);
+                        window.location.href = '/contact';
+                      }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                     >
                       <Mail className="w-4 h-4" />
@@ -718,7 +726,11 @@ export function HeaderMenu({
                 <div className="py-2">
                   <Link
                     href="/how-it-works"
-                    onClick={() => setShowMenu(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowMenu(false);
+                      window.location.href = '/how-it-works';
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                   >
                     <Info className="w-4 h-4" />
@@ -726,7 +738,11 @@ export function HeaderMenu({
                   </Link>
                   <Link
                     href="/contact"
-                    onClick={() => setShowMenu(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowMenu(false);
+                      window.location.href = '/contact';
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-gray-700"
                   >
                     <Mail className="w-4 h-4" />
