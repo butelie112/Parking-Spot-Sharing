@@ -376,7 +376,7 @@ export const ro = {
     },
     requests: {
       bookingRequests: "Cereri de rezervare",
-      manageBookings: "Gestionează rezervările tale pentru locuri de parcare",
+      manageBookings: "Gestionează rezervările tale pentru locurile de parcare",
       incoming: "Primite",
       myRequests: "Cererile mele",
       noIncomingRequests: "Nu sunt cereri primite",
