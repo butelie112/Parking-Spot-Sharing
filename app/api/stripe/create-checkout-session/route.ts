@@ -23,11 +23,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate platform fee (10%) and wallet amount (90%)
-    const PLATFORM_FEE_PERCENTAGE = 0.10; // 10%
+    // No platform fee on wallet deposits - full amount goes to wallet
     const totalAmount = parseFloat(amount);
-    const platformFee = totalAmount * PLATFORM_FEE_PERCENTAGE;
-    const walletAmount = totalAmount - platformFee;
+    const walletAmount = totalAmount; // 100% of payment goes to wallet
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -38,7 +36,7 @@ export async function POST(request: NextRequest) {
             currency: 'ron', // Romanian Lei
             product_data: {
               name: 'Wallet Balance Top-up',
-              description: `Add ${walletAmount.toFixed(2)} RON to your wallet (${totalAmount.toFixed(2)} RON total, includes 10% platform fee)`,
+              description: `Add ${walletAmount.toFixed(2)} RON to your wallet`,
             },
             unit_amount: Math.round(totalAmount * 100), // Stripe expects amount in smallest currency unit (bani for RON)
           },
@@ -52,7 +50,6 @@ export async function POST(request: NextRequest) {
         userId,
         totalAmount: totalAmount.toString(),
         walletAmount: walletAmount.toFixed(2),
-        platformFee: platformFee.toFixed(2),
       },
     });
 

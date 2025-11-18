@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
       const userId = session.metadata?.userId;
       const totalAmount = parseFloat(session.metadata?.totalAmount || '0');
       const walletAmount = parseFloat(session.metadata?.walletAmount || '0');
-      const platformFee = parseFloat(session.metadata?.platformFee || '0');
 
       if (userId && totalAmount > 0 && walletAmount > 0) {
         // Check if this payment was already processed
@@ -52,13 +51,12 @@ export async function POST(request: NextRequest) {
             success: true,
             walletAmount,
             totalAmount,
-            platformFee,
             paymentStatus: session.payment_status,
             alreadyProcessed: true,
           });
         }
 
-        // Add balance to user's wallet (only wallet amount, not total)
+        // Add full amount to user's wallet (no platform fee on deposits)
         const { data, error } = await supabase.rpc('add_to_wallet', {
           p_user_id: userId,
           p_amount: walletAmount,
@@ -81,13 +79,11 @@ export async function POST(request: NextRequest) {
 
         console.log('User profile fetched:', profile);
 
-        // Record the complete transaction with all details
+        // Record the transaction
         const paymentData = {
           session_id: sessionId,
           user_id: userId,
-          amount: walletAmount, // Net amount added to wallet (90%)
-          total_amount: totalAmount, // Total amount paid by user (100%)
-          platform_fee: platformFee, // Platform fee (10%)
+          amount: walletAmount, // Full amount added to wallet
           transaction_type: 'stripe_deposit',
           email: profile?.email || null,
           full_name: profile?.full_name || null,
@@ -107,13 +103,12 @@ export async function POST(request: NextRequest) {
           console.log('✅ Payment record inserted successfully:', paymentRecord);
         }
 
-        console.log(`Successfully processed payment - Added ${walletAmount} RON to wallet, ${platformFee} RON platform fee (Total: ${totalAmount} RON) for user ${userId}`);
+        console.log(`Successfully processed payment - Added ${walletAmount} RON to wallet for user ${userId}`);
 
         return NextResponse.json({
           success: true,
           walletAmount,
           totalAmount,
-          platformFee,
           paymentStatus: session.payment_status,
           alreadyProcessed: false,
         });

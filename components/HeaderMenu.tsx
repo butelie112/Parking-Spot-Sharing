@@ -167,8 +167,7 @@ export function HeaderMenu({
           // Show success message
           if (!data.alreadyProcessed) {
             const walletAmount = data.walletAmount || data.amount || 0;
-            const totalAmount = data.totalAmount || walletAmount;
-            alert(`✅ Payment successful! You paid ${totalAmount.toFixed(2)} RON. Added ${walletAmount.toFixed(2)} RON to your wallet.`);
+            alert(`✅ Payment successful! Added ${walletAmount.toFixed(2)} RON to your wallet.`);
           } else {
             // Payment was already processed (probably by webhook)
             alert(`✅ Payment confirmed! Your wallet has been updated.`);
@@ -1164,39 +1163,27 @@ export function HeaderMenu({
                       </p>
                     </div>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                      <p className="text-sm font-semibold text-amber-800 mb-1">
-                        ⚠️ {t.modals.wallet.platformFeeNotice}
-                      </p>
-                      <p className="text-xs text-amber-700">
-                        {t.modals.wallet.platformFeeDescription}
-                      </p>
-                    </div>
-
                     <div className="grid grid-cols-3 gap-2">
                       <button
                         onClick={() => handleAddBalance(50)}
                         disabled={processingPayment}
                         className="bg-gray-100 hover:bg-gray-200 disabled:bg-gray-300 text-gray-800 font-semibold py-3 px-2 rounded-xl transition-all flex flex-col items-center justify-center"
                       >
-                        <span className="text-xs text-gray-600">{t.modals.wallet.payAmount.replace('{{amount}}', '50')}</span>
-                        <span className="text-sm">{t.modals.wallet.addToWallet.replace('{{amount}}', '45')}</span>
+                        <span className="text-sm">50 RON</span>
                       </button>
                       <button
                         onClick={() => handleAddBalance(100)}
                         disabled={processingPayment}
                         className="bg-gray-100 hover:bg-gray-200 disabled:bg-gray-300 text-gray-800 font-semibold py-3 px-2 rounded-xl transition-all flex flex-col items-center justify-center"
                       >
-                        <span className="text-xs text-gray-600">{t.modals.wallet.payAmount.replace('{{amount}}', '100')}</span>
-                        <span className="text-sm">{t.modals.wallet.addToWallet.replace('{{amount}}', '90')}</span>
+                        <span className="text-sm">100 RON</span>
                       </button>
                       <button
                         onClick={() => handleAddBalance(200)}
                         disabled={processingPayment}
                         className="bg-gray-100 hover:bg-gray-200 disabled:bg-gray-300 text-gray-800 font-semibold py-3 px-2 rounded-xl transition-all flex flex-col items-center justify-center"
                       >
-                        <span className="text-xs text-gray-600">{t.modals.wallet.payAmount.replace('{{amount}}', '200')}</span>
-                        <span className="text-sm">{t.modals.wallet.addToWallet.replace('{{amount}}', '180')}</span>
+                        <span className="text-sm">200 RON</span>
                       </button>
                     </div>
 
@@ -1219,17 +1206,10 @@ export function HeaderMenu({
                           className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#00C48C] focus:border-transparent outline-none text-gray-900 disabled:bg-gray-100"
                         />
                       </div>
-                      <div className="mt-2 space-y-1">
+                      <div className="mt-2">
                         <p className="text-xs text-gray-500">
                           {t.modals.wallet.minimumAmount}
                         </p>
-                        {customAmount && parseFloat(customAmount) >= 10 && (
-                          <p className="text-xs text-green-600 font-semibold">
-                            {t.modals.wallet.paymentBreakdown
-                              .replace('{{total}}', parseFloat(customAmount).toFixed(2))
-                              .replace('{{wallet}}', (parseFloat(customAmount) * 0.9).toFixed(2))}
-                          </p>
-                        )}
                       </div>
                     </div>
 

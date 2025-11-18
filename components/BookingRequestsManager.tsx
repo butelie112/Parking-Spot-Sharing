@@ -269,24 +269,29 @@ export function BookingRequestsManager() {
           throw new Error('Request details not found');
         }
 
-        // Calculate total price if not stored, or use stored value
-        totalPrice = request.total_price || null;
-        if (!totalPrice && request.spot?.price && request.start_date && request.end_date && request.start_time && request.end_time) {
+        // Calculate booking amount (what owner receives)
+        let bookingAmount = request.total_price || null;
+        if (!bookingAmount && request.spot?.price && request.start_date && request.end_date && request.start_time && request.end_time) {
           const startDateTime = new Date(`${request.start_date}T${request.start_time}`);
           const endDateTime = new Date(`${request.end_date}T${request.end_time}`);
           const hours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
-          totalPrice = hours * request.spot.price;
+          bookingAmount = hours * request.spot.price;
         }
 
-        if (!totalPrice || totalPrice <= 0) {
+        if (!bookingAmount || bookingAmount <= 0) {
           throw new Error('Cannot calculate pricing information for this booking');
         }
 
+        // Calculate platform fee (10%) and total charged to user
+        const platformFee = bookingAmount * 0.10;
+        const totalCharged = bookingAmount + platformFee;
+
         // Process the payment using the database function
+        // Deduct total (booking + fee) from user, transfer booking amount to owner
         const { data: paymentResult, error: paymentError } = await supabase.rpc('process_booking_payment', {
           p_from_user_id: request.requester_id,
           p_to_user_id: request.owner_id,
-          p_amount: totalPrice
+          p_amount: totalCharged
         });
 
         if (paymentError) {
@@ -297,6 +302,43 @@ export function BookingRequestsManager() {
         if (!paymentResult || !paymentResult.success) {
           throw new Error(paymentResult?.message || 'Payment processing failed - insufficient funds or other error');
         }
+
+        // Get owner profile (current user who is accepting)
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', request.owner_id)
+          .single();
+
+        // Record platform fee in the new platform_fees table
+        const platformFeeRecord = {
+          booking_request_id: requestId,
+          user_id: request.requester_id,
+          user_email: request.requester?.email || null,
+          user_name: request.requester?.full_name || null,
+          owner_id: request.owner_id,
+          owner_email: ownerProfile?.email || null,
+          owner_name: ownerProfile?.full_name || null,
+          spot_id: request.spot_id,
+          spot_name: request.spot?.name || null,
+          booking_amount: bookingAmount,
+          platform_fee: platformFee,
+          total_charged: totalCharged
+        };
+
+        const { error: feeError } = await supabase
+          .from('platform_fees')
+          .insert(platformFeeRecord);
+
+        if (feeError) {
+          console.error('Error recording platform fee:', feeError);
+          // Don't throw error here - payment already processed, just log the issue
+        } else {
+          console.log('✅ Platform fee recorded successfully:', platformFeeRecord);
+        }
+
+        // Store for later use
+        totalPrice = totalCharged;
       }
 
       // Update the request status (core fields that should always exist)

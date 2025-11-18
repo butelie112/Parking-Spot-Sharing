@@ -360,8 +360,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
     setBalanceError(null);
 
     try {
-      // Calculate total price
-      const totalPrice = calculateTotalPrice(spot.price, startTime, endTime);
+      // Calculate total price with platform fee
+      const bookingAmount = calculateTotalPrice(spot.price, startTime, endTime);
+      const totalPrice = calculateTotalCharged(bookingAmount); // Includes 10% platform fee
 
       // Get user's current balance
       const { data: profile, error: profileError } = await supabase
@@ -375,7 +376,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
       const currentBalance = profile?.wallet_balance || 0;
       setUserBalance(currentBalance);
 
-      // Check if balance is sufficient
+      // Check if balance is sufficient (must cover booking amount + platform fee)
       if (currentBalance < totalPrice) {
         setBalanceError(`❌ Sold insuficient în portofel. Aveți nevoie de ${totalPrice.toFixed(2)} RON dar aveți doar ${currentBalance.toFixed(2)} RON. Vă rugăm să adăugați fonduri.`);
       }
@@ -1016,15 +1017,37 @@ const BookingModal: React.FC<BookingModalProps> = ({ spot, onClose, onSubmit, lo
                         {calculateTotalHours(startTime, endTime).toFixed(2)} {t.common.hours}
                       </span>
                     </div>
+                    
+                    {/* Booking Amount */}
+                    <div className="flex justify-between items-center py-2 border-t border-gray-200">
+                      <span className="text-sm text-gray-700">
+                        {t.modals.booking.bookingAmount || "Booking Amount"}:
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {formatPrice(calculateTotalPrice(spot.price, startTime, endTime))}
+                      </span>
+                    </div>
+                    
+                    {/* Platform Fee */}
+                    <div className="flex justify-between items-center py-2 bg-blue-50 px-3 rounded-lg">
+                      <span className="text-sm text-blue-700">
+                        {t.modals.booking.platformFee || "Platform Fee (10%)"}:
+                      </span>
+                      <span className="font-semibold text-blue-800">
+                        {formatPrice(calculatePlatformFee(calculateTotalPrice(spot.price, startTime, endTime)))}
+                      </span>
+                    </div>
+                    
+                    {/* Total Charged */}
                     <div className={`flex justify-between items-center py-3 px-3 rounded-lg border ${
                       balanceError ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
                     }`}>
                       <span className={`font-bold ${balanceError ? 'text-red-800' : 'text-green-800'}`}>
                         {balanceError && <span className="mr-1">⚠️</span>}
-                        {t.modals.booking.totalPrice}
+                        {t.modals.booking.totalCharged || "Total Charged"}:
                       </span>
                       <span className={`font-bold text-lg ${balanceError ? 'text-red-800' : 'text-green-800'}`}>
-                        {formatPrice(calculateTotalPrice(spot.price, startTime, endTime))}
+                        {formatPrice(calculateTotalCharged(calculateTotalPrice(spot.price, startTime, endTime)))}
                         {balanceError && <span className="text-sm ml-2">({t.modals.booking.insufficientBalance})</span>}
                       </span>
                     </div>
@@ -1109,10 +1132,20 @@ function calculateTotalHours(startTime: string, endTime: string): number {
   return durationMinutes / 60;
 }
 
-// Helper function to calculate total price
+// Helper function to calculate total price (booking amount only, no fee)
 function calculateTotalPrice(hourlyPrice: number, startTime: string, endTime: string): number {
   const totalHours = calculateTotalHours(startTime, endTime);
   return hourlyPrice * totalHours;
+}
+
+// Helper function to calculate platform fee (10%)
+function calculatePlatformFee(bookingAmount: number): number {
+  return bookingAmount * 0.10; // 10% platform fee
+}
+
+// Helper function to calculate total amount charged to user (booking + fee)
+function calculateTotalCharged(bookingAmount: number): number {
+  return bookingAmount + calculatePlatformFee(bookingAmount);
 }
 
 // Helper function to format price
