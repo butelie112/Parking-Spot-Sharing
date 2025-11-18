@@ -564,7 +564,7 @@ export const ro = {
       ownerBenefit3: "Management ușor",
       ownerBenefit4: "Plăți securizate",
       ctaTitle: "Gata să începeți?",
-      ctaDesc: "Alăturați-vă miilor de utilizatori care au descoperit deja comoditatea Parkezz.",
+      ctaDesc: "Fiți parte din comunitatea care a descoperit cât de simplu este Parkezz.",
       ctaButton: "Începeți să utilizați Parkezz"
     },
     contact: {
