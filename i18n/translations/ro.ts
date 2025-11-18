@@ -550,7 +550,7 @@ export const ro = {
       step4Title: "Parchează cu încredere",
       step4Desc: "Ajungeți la ora desemnată și bucurați-vă de locul dumneavoastră de parcare rezervat. Obțineți direcții chiar în aplicație.",
       featuresTitle: "Creat pentru toată lumea",
-      featuresDesc: "Fie că căutați parcare sau doriți să partajați spațiul dumneavoastră, Parkezz vă acoperă.",
+      featuresDesc: "Fie că aveți nevoie de un loc de parcare sau doriți să îl puneți pe al vostru la dispoziție, suntem aici pentru Dvs.",
       feature1Title: "Pentru șoferi",
       feature1Desc: "Găsiți și rezervați locuri de parcare disponibile cu ușurință. Nu vă mai faceți griji niciodată să găsiți parcare.",
       driverBenefit1: "Disponibilitate în timp real",
