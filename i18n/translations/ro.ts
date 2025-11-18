@@ -40,7 +40,7 @@ export const ro = {
   auth: {
     login: {
       title: "Autentificare",
-      subtitle: "Găsește și partajează locuri de parcare cu ușurință",
+      subtitle: "Găsește și închiriază locuri de parcare cu ușurință",
       email: "Adresa de email",
       emailPlaceholder: "tu@exemplu.com",
       password: "Parolă",
@@ -537,7 +537,7 @@ export const ro = {
     howItWorks: {
       title: "Cum funcționează Parkezz",
       subtitle: "Partajarea parcărilor simplificată",
-      heroTitle: "Găsește parcare, partajează spații, economisește timp",
+      heroTitle: "Găsește parcare, închiriază spații, economisește timp",
       heroDesc: "Parkezz conectează șoferii cu locuri de parcare disponibile și ajută proprietarii să monetizeze spațiile neutilizate.",
       howItWorksTitle: "Cum funcționează",
       howItWorksDesc: "Începerea utilizării Parkezz este simplă. Urmați acești pași ușori.",
