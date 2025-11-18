@@ -558,7 +558,7 @@ export const ro = {
       driverBenefit3: "Direcții GPS",
       driverBenefit4: "Confirmări instantanee de rezervare",
       feature2Title: "Pentru proprietari de locuri",
-      feature2Desc: "Partajați spațiul dumneavoastră de parcare neutilizat și câștigați venituri suplimentare. Setați propriul program și prețuri.",
+      feature2Desc: "Puneți la dispoziție locul de parcare neutilizat și câștigați venituri suplimentare. Stabiliți singuri programul și prețurile.",
       ownerBenefit1: "Programare flexibilă",
       ownerBenefit2: "Setați propriile tarife",
       ownerBenefit3: "Management ușor",
