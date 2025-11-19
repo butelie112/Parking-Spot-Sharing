@@ -13,10 +13,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { params: string[] } }
+  { params }: { params: Promise<{ params: string[] }> }
 ) {
   try {
-    const pathParams = params.params;
+    const resolvedParams = await params;
+    const pathParams = resolvedParams.params;
 
     // Validate parameters
     if (!pathParams || pathParams.length !== 4) {
