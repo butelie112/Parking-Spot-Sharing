@@ -2,6 +2,7 @@ export const en = {
   common: {
     loading: "Loading...",
     cancel: "Cancel",
+    ok: "OK",
     save: "Save",
     delete: "Delete",
     edit: "Edit",
@@ -579,7 +580,8 @@ export const en = {
       followUs: "Follow Us",
       followUsDesc: "Stay updated with our latest news and updates",
       sendMessage: "Send us a Message",
-      successMessage: "Message sent successfully! We'll get back to you soon.",
+      successTitle: "Message Sent Successfully!",
+      successMessage: "Thank you for reaching out! We'll get back to you soon.",
       yourName: "Your Name",
       namePlaceholder: "John Doe",
       yourEmail: "Your Email",

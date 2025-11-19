@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Mail, User, MessageSquare, Send } from 'lucide-react';
+import { ArrowLeft, Mail, User, MessageSquare, Send, CheckCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -45,9 +45,6 @@ export default function ContactPage() {
         subject: '',
         message: ''
       });
-
-      // Hide success message after 5 seconds
-      setTimeout(() => setSuccess(false), 5000);
     } catch (err: any) {
       setError(err.message || 'Failed to send message. Please try again.');
     } finally {
@@ -64,6 +61,42 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Success Modal */}
+      {success && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-[scale-in_0.2s_ease-out]">
+            <button
+              onClick={() => setSuccess(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                {t.pages?.contact?.successTitle || "Message Sent Successfully!"}
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                {t.pages?.contact?.successMessage || "We'll get back to you soon."}
+              </p>
+              
+              <button
+                onClick={() => setSuccess(false)}
+                className="w-full bg-[#00C48C] hover:bg-[#00b37d] text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl"
+              >
+                {t.common.ok || "OK"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -140,14 +173,6 @@ export default function ContactPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               {t.pages?.contact?.sendMessage || "Send us a Message"}
             </h2>
-
-            {success && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 font-semibold">
-                  ✅ {t.pages?.contact?.successMessage || "Message sent successfully! We'll get back to you soon."}
-                </p>
-              </div>
-            )}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

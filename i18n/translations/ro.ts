@@ -2,6 +2,7 @@ export const ro = {
   common: {
     loading: "Se încarcă...",
     cancel: "Anulează",
+    ok: "OK",
     save: "Salvează",
     delete: "Șterge",
     edit: "Editează",
@@ -579,7 +580,8 @@ export const ro = {
       followUs: "Urmăriți-ne",
       followUsDesc: "Rămâneți la curent cu cele mai recente știri și actualizări",
       sendMessage: "Trimiteți-ne un mesaj",
-      successMessage: "Mesaj trimis cu succes! Vă vom contacta în curând.",
+      successTitle: "Mesaj trimis cu succes!",
+      successMessage: "Vă mulțumim că ne-ați contactat! Vă vom răspunde în curând.",
       yourName: "Numele dumneavoastră",
       namePlaceholder: "Ion Popescu",
       yourEmail: "Email-ul dumneavoastră",
