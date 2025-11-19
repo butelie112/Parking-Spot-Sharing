@@ -86,48 +86,50 @@ This email was sent from the Parkezz contact form
     await transporter.sendMail(mailOptions);
 
     // Optional: Send confirmation email to the user
+    // This is wrapped in try-catch so it doesn't fail the entire request if the user's email is invalid
     if (process.env.SEND_CONFIRMATION_EMAIL === 'true') {
-      const confirmationMailOptions = {
-        from: process.env.SMTP_USER,
-        to: email,
-        subject: 'We received your message - Parkezz',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #00C48C 0%, #007BFF 100%); padding: 30px; text-align: center;">
-              <h1 style="color: white; margin: 0;">Thank You for Contacting Us!</h1>
-            </div>
-            
-            <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0;">
-              <p style="color: #333; font-size: 16px;">Hi ${name},</p>
-              
-              <p style="color: #555; line-height: 1.6;">
-                Thank you for reaching out to Parkezz! We've received your message and will get back to you as soon as possible, typically within 24 hours.
-              </p>
-              
-              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #333; margin-top: 0;">Your Message:</h3>
-                <p style="margin: 10px 0;"><strong>Subject:</strong> ${subject}</p>
-                <p style="color: #555; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+      try {
+        const confirmationMailOptions = {
+          from: process.env.SMTP_USER,
+          to: email,
+          subject: 'We received your message - Parkezz',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #00C48C 0%, #007BFF 100%); padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0;">Thank You for Contacting Us!</h1>
               </div>
               
-              <p style="color: #555; line-height: 1.6;">
-                If you have any urgent concerns, please don't hesitate to reach out to us directly.
-              </p>
+              <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0;">
+                <p style="color: #333; font-size: 16px;">Hi ${name},</p>
+                
+                <p style="color: #555; line-height: 1.6;">
+                  Thank you for reaching out to Parkezz! We've received your message and will get back to you as soon as possible, typically within 24 hours.
+                </p>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Your Message:</h3>
+                  <p style="margin: 10px 0;"><strong>Subject:</strong> ${subject}</p>
+                  <p style="color: #555; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                </div>
+                
+                <p style="color: #555; line-height: 1.6;">
+                  If you have any urgent concerns, please don't hesitate to reach out to us directly.
+                </p>
+                
+                <p style="color: #333; margin-top: 30px;">
+                  Best regards,<br>
+                  <strong>The Parkezz Team</strong>
+                </p>
+              </div>
               
-              <p style="color: #333; margin-top: 30px;">
-                Best regards,<br>
-                <strong>The Parkezz Team</strong>
-              </p>
+              <div style="background: #333; padding: 20px; text-align: center;">
+                <p style="color: #999; margin: 0; font-size: 12px;">
+                  © 2025 Parkezz. All rights reserved.
+                </p>
+              </div>
             </div>
-            
-            <div style="background: #333; padding: 20px; text-align: center;">
-              <p style="color: #999; margin: 0; font-size: 12px;">
-                © 2025 Parkezz. All rights reserved.
-              </p>
-            </div>
-          </div>
-        `,
-        text: `
+          `,
+          text: `
 Hi ${name},
 
 Thank you for reaching out to Parkezz! We've received your message and will get back to you as soon as possible, typically within 24 hours.
@@ -143,10 +145,16 @@ The Parkezz Team
 
 ---
 © 2025 Parkezz. All rights reserved.
-        `,
-      };
+          `,
+        };
 
-      await transporter.sendMail(confirmationMailOptions);
+        await transporter.sendMail(confirmationMailOptions);
+      } catch (confirmError: any) {
+        // Log the error but don't fail the request since the main email was sent successfully
+        console.error('Failed to send confirmation email to user:', confirmError.message);
+        console.error('User email:', email);
+        // Continue execution - the main notification email was sent successfully
+      }
     }
 
     return NextResponse.json(
