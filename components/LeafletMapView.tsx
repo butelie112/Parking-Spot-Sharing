@@ -1323,16 +1323,17 @@ export function LeafletMapView({
           whenReady={() => console.log('Map ready')}
         >
           {/* Primary Map Layer - Mapbox Streets (Ultra-High Detail) */}
+          {/* Tiles are now proxied through our backend to keep the access token secure */}
           <TileLayer
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'YOUR_MAPBOX_ACCESS_TOKEN'}`}
+            url={`/api/mapbox-tiles/streets-v12/{z}/{x}/{y}`}
             maxZoom={22}
             tileSize={512}
             zoomOffset={-1}
             eventHandlers={{
               tileerror: () => {
                 console.warn('Mapbox tiles failed to load');
-                setMapError('Map tiles temporarily unavailable. Please check your Mapbox API key.');
+                setMapError('Map tiles temporarily unavailable. Please try again later.');
               },
               tileload: () => {
                 setMapError(null);
@@ -1344,7 +1345,7 @@ export function LeafletMapView({
           {/*
           <TileLayer
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'YOUR_MAPBOX_ACCESS_TOKEN'}`}
+            url={`/api/mapbox-tiles/satellite-v9/{z}/{x}/{y}`}
             maxZoom={22}
             tileSize={512}
             zoomOffset={-1}
