@@ -506,7 +506,7 @@ Email on reserve (Resend) to confirm slot/time.
 
 RLS policies snippets in SQL and set to enabled.
 
-17) Task List (for Cursor to follow)
+17) Task List
 
 Scaffold Next.js + Tailwind + shadcn/ui; add Leaflet & Supabase client.
 

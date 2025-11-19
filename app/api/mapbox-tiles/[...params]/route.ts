@@ -69,6 +69,7 @@ export async function GET(
 
     if (!accessToken) {
       console.error('MAPBOX_ACCESS_TOKEN environment variable is not set');
+      console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('MAPBOX') || key.includes('NEXT')));
       return NextResponse.json(
         { error: 'Map service configuration error' },
         { status: 500 }
